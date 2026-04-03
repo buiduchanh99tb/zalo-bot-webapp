@@ -59,7 +59,8 @@
         <div class="flex items-center gap-3 mb-6">
             <div
                 class="w-11 h-11 bg-zalo-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-zalo-500/30">
-                <i class="bi bi-robot text-xl"></i></div>
+                <i class="bi bi-robot text-xl"></i>
+            </div>
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-800">Zalo Bot Workspace</h1>
                 <p class="text-xs text-slate-500">Polling Mode • Deploy on Vercel</p>
@@ -146,7 +147,8 @@
                             <p class="text-xs text-amber-700 mt-1">App này dùng API <code>getUpdates</code> (Long
                                 Polling) qua Proxy serverless. Phương thức này <strong>loại trừ lẫn nhau</strong> với
                                 Webhook — nếu bot đang có webhook, getUpdates sẽ bị Zalo chặn. App sẽ tự động gọi
-                                <code>deleteWebhook</code> khi kết nối.</p>
+                                <code>deleteWebhook</code> khi kết nối.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -179,7 +181,8 @@
                         <div class="relative">
                             <div
                                 class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xl shadow-md">
-                                <i class="bi bi-robot"></i></div>
+                                <i class="bi bi-robot"></i>
+                            </div>
                             <div
                                 class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full animate-pulse">
                             </div>
@@ -270,7 +273,13 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            return res.json();
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('Non-JSON response:', text.substring(0, 200));
+                throw new Error(`Server trả về lỗi (HTTP ${res.status}). Kiểm tra lại deployment.`);
+            }
         }
 
         function log(msg) {

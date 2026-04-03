@@ -1,9 +1,8 @@
-// Proxy endpoint: /api/proxy
-// Frontend gọi: POST /api/proxy?token=xxx&method=getMe
-// Server chuyển tiếp: POST https://bot-api.zaloplatforms.com/bot{token}/{method}
+// Proxy endpoint: POST /api/proxy?token=xxx&method=getMe
+// Chuyển tiếp request tới Zalo Bot API, bypass CORS
 
-module.exports = async (req, res) => {
-    // Cho phép CORS
+export default async function handler(req, res) {
+    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -20,18 +19,21 @@ module.exports = async (req, res) => {
     try {
         const targetUrl = `https://bot-api.zaloplatforms.com/bot${token}/${method}`;
 
+        // req.body đã được Vercel tự parse JSON
+        const body = req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0
+            ? JSON.stringify(req.body)
+            : undefined;
+
         const response = await fetch(targetUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: req.body && Object.keys(req.body).length > 0
-                ? JSON.stringify(req.body)
-                : undefined
+            body: body
         });
 
         const data = await response.json();
-        res.status(response.status).json(data);
+        return res.status(200).json(data);
     } catch (error) {
-        console.error('[PROXY ERROR]', error.message);
-        res.status(500).json({ error: error.message });
+        console.error('[PROXY ERROR]', error);
+        return res.status(500).json({ error: error.message });
     }
-};
+}
